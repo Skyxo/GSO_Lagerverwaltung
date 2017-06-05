@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Lagerverwaltung.Model.Standort
 {
-    class Bonn : Lager
+    public class Bonn : Lager
     {
 
         /// <summary>

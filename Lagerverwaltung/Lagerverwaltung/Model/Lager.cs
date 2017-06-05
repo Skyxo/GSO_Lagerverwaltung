@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Lagerverwaltung.Model
 {
-    class Lager
+    public class Lager
     {
 
         /// <summary>
@@ -30,26 +30,80 @@ namespace Lagerverwaltung.Model
         /// <summary>
         /// Eine Palette dem Palettenbestand des Lagers hinzufügen
         /// </summary>
-        public void PaletteHinzufügen()
+        /// <param name="anzahl">Anzahl der hinzuzufügenden Paletten</param>
+        public void PaletteHinzufügen(int anzahl)
         {
+            // Negative Anzahlen ausfiltern
+            if (anzahl < 0)
+            {
+                throw new ArgumentOutOfRangeException("Es können keine negativen Palettenbestände hinzugefügt werden!");
+            }
 
+            // Verfügbare Kapazität prüfen
+            if (Palettenbestand == Kapazität)
+            {
+                // Fehler melden, dass das Lager bereits voll ist.
+                throw new ArgumentOutOfRangeException("Lager ist voll");
+            }
+            // Zukünftigen Palettenbestand überprüfen
+            else if (Palettenbestand + anzahl > Kapazität)
+            {
+                throw new ArgumentOutOfRangeException("Lager hat nicht ausreichend Kapazitäten zur Verfügung!");
+            }
+            else
+            {
+                // Palette zum Bestand hinzufügen
+                Palettenbestand += anzahl;
+            }
         }
 
         /// <summary>
         /// Verkaufen einer Palette aus dem Palettenbestand
         /// </summary>
-        public void PaletteVerkaufen()
+        public void PaletteVerkaufen(int anzahl)
         {
+            // Negative Anzahlen ausfiltern
+            if (anzahl < 0)
+            {
+                throw new ArgumentOutOfRangeException("Es können keine negativen Palettenbestände verkauft werden!");
+            }
 
+            // Verfügbare Paletten prüfen
+            if (Palettenbestand == 0)
+            {
+                // Fehler melden, dass das Lager leer ist.
+                throw new ArgumentOutOfRangeException("Keine Paletten zum Verkauf");
+            }
+            // Zukünftigen Palettenbestand überprüfen
+            else if (Palettenbestand - anzahl < 0)
+            {
+                throw new ArgumentOutOfRangeException("Lager hat zu wenig Paletten zum Verkauf");
+            }
+            else
+            {
+                // Palette vom Bestand abziehen
+                Palettenbestand--;
+            }
         }
 
         /// <summary>
         /// Zieht eine Palette aus dem Palettenbestand in ein anderes Lager ab
         /// </summary>
         /// <param name="lager"></param>
-        public void PaletteAbziehen(Lager lager)
+        public void PaletteAbziehen(int anzahl, ref Lager lager)
         {
+            try
+            {
+                // Palette aus aktuellem Lager entfernen
+                PaletteVerkaufen(anzahl);
 
+                // Palette zum neuen Lager hinzufügen
+                lager.PaletteHinzufügen(anzahl);
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                throw ex;
+            }
         }
 
     }
