@@ -14,8 +14,9 @@ namespace Lagerverwaltung.Model.Standort
         /// </summary>
         public Bonn()
         {
-            Kapazität = 10000;
-            Palettenbestand = 0;
+            Standort = "Bonn";
+
+            DatenLaden();
         }
 
     }

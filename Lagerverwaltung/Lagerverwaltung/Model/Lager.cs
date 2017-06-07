@@ -10,6 +10,24 @@ namespace Lagerverwaltung.Model
     {
 
         /// <summary>
+        /// Lager ID
+        /// </summary>
+        public int LagerID
+        {
+            get;
+            protected set;
+        }
+
+        /// <summary>
+        /// Standort des Lagers
+        /// </summary>
+        public string Standort
+        {
+            get;
+            protected set;
+        }
+
+        /// <summary>
         /// Maximale Kapazität von Paletten eines Lagers
         /// </summary>
         public int Kapazität
@@ -28,10 +46,46 @@ namespace Lagerverwaltung.Model
         }
 
         /// <summary>
+        /// Lädt alle Daten aus der Datenbank mithilfe des EntityFrameworks
+        /// </summary>
+        protected void DatenLaden()
+        {
+            LagerverwaltungEntities entities = new LagerverwaltungEntities();
+
+            // LINQ Abfrage aller Lager mit einem Standort
+            IQueryable<lager> lagerListe = from l in entities.lager
+                                      where l.Standort == Standort
+                                      select l;
+
+            // Erstes Objekt aus der Abfrage auslesen
+            lager lager = lagerListe.FirstOrDefault();
+
+            if (lager != null)
+            {
+                // Eigenschaften sichern
+                LagerID = lager.LagerID;
+                Standort = lager.Standort;
+                Kapazität = lager.Kapazitaet;
+
+                // Palettenbestand auslesen
+                Palettenbestand = (from p in entities.bestand
+                                   where p.LagerID == LagerID
+                                   select p).Count();
+            }
+            else
+            {
+                throw new Exception("Lager konnte nicht gefunden werden");
+            }
+
+
+        }
+
+        /// <summary>
         /// Eine Palette dem Palettenbestand des Lagers hinzufügen
         /// </summary>
+        /// <param name="palette">Palette</param>
         /// <param name="anzahl">Anzahl der hinzuzufügenden Paletten</param>
-        public void PaletteHinzufügen(int anzahl)
+        public void PaletteHinzufügen(bestand palette, int anzahl)
         {
             // Negative Anzahlen ausfiltern
             if (anzahl < 0)
@@ -54,13 +108,24 @@ namespace Lagerverwaltung.Model
             {
                 // Palette zum Bestand hinzufügen
                 Palettenbestand += anzahl;
+
+                LagerverwaltungEntities entities = new LagerverwaltungEntities();
+
+                // Anzahl der Paletten zum Bestand hinzufügen
+                for (int i = 0; i < anzahl; i++)
+                {
+                    palette.LagerID = LagerID;
+                    entities.bestand.Add(palette);
+                }
+
+                entities.SaveChanges();
             }
         }
 
         /// <summary>
         /// Verkaufen einer Palette aus dem Palettenbestand
         /// </summary>
-        public void PaletteVerkaufen(int anzahl)
+        public void PaletteVerkaufen(bestand palette, int anzahl)
         {
             // Negative Anzahlen ausfiltern
             if (anzahl < 0)
@@ -82,27 +147,18 @@ namespace Lagerverwaltung.Model
             else
             {
                 // Palette vom Bestand abziehen
-                Palettenbestand--;
-            }
-        }
+                Palettenbestand -= anzahl;
 
-        /// <summary>
-        /// Zieht eine Palette aus dem Palettenbestand in ein anderes Lager ab
-        /// </summary>
-        /// <param name="lager"></param>
-        public void PaletteAbziehen(int anzahl, ref Lager lager)
-        {
-            try
-            {
-                // Palette aus aktuellem Lager entfernen
-                PaletteVerkaufen(anzahl);
+                LagerverwaltungEntities entities = new LagerverwaltungEntities();
 
-                // Palette zum neuen Lager hinzufügen
-                lager.PaletteHinzufügen(anzahl);
-            }
-            catch (ArgumentOutOfRangeException ex)
-            {
-                throw ex;
+                // Anzahl der Paletten zum Bestand hinzufügen
+                for (int i = 0; i < anzahl; i++)
+                {
+                    palette.LagerID = LagerID;
+                    entities.bestand.Remove(palette);
+                }
+
+                entities.SaveChanges();
             }
         }
 

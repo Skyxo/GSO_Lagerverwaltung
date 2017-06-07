@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="LagerverwaltungModel.Store" Provider="MySql.Data.MySqlClient" ProviderManifestToken="5.5" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="bestand">
+          <Key>
+            <PropertyRef Name="PaletteID" />
+          </Key>
+          <Property Name="PaletteID" Type="int" Nullable="false" />
+          <Property Name="LagerID" Type="int" Nullable="false" />
+          <Property Name="Bezeichnung" Type="varchar" MaxLength="255" Nullable="false" />
+          <Property Name="Einheiten" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="lager">
+          <Key>
+            <PropertyRef Name="LagerID" />
+          </Key>
+          <Property Name="LagerID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Standort" Type="varchar" MaxLength="255" Nullable="false" />
+          <Property Name="Kapazitaet" Type="int" Nullable="false" />
+        </EntityType>
+        <Association Name="fk_bestand_lager">
+          <End Role="lager" Type="Self.lager" Multiplicity="1" />
+          <End Role="bestand" Type="Self.bestand" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="lager">
+              <PropertyRef Name="LagerID" />
+            </Principal>
+            <Dependent Role="bestand">
+              <PropertyRef Name="LagerID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="LagerverwaltungModelStoreContainer">
+          <EntitySet Name="bestand" EntityType="Self.bestand" Schema="lagerverwaltung" store:Type="Tables" />
+          <EntitySet Name="lager" EntityType="Self.lager" Schema="lagerverwaltung" store:Type="Tables" />
+          <AssociationSet Name="fk_bestand_lager" Association="Self.fk_bestand_lager">
+            <End Role="lager" EntitySet="lager" />
+            <End Role="bestand" EntitySet="bestand" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="LagerverwaltungModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="bestand">
+          <Key>
+            <PropertyRef Name="PaletteID" />
+          </Key>
+          <Property Name="PaletteID" Type="Int32" Nullable="false" />
+          <Property Name="LagerID" Type="Int32" Nullable="false" />
+          <Property Name="Bezeichnung" Type="String" MaxLength="255" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Einheiten" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="lager" Relationship="Self.fk_bestand_lager" FromRole="bestand" ToRole="lager" />
+        </EntityType>
+        <EntityType Name="lager">
+          <Key>
+            <PropertyRef Name="LagerID" />
+          </Key>
+          <Property Name="LagerID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Standort" Type="String" MaxLength="255" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Kapazitaet" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="bestand" Relationship="Self.fk_bestand_lager" FromRole="lager" ToRole="bestand" />
+        </EntityType>
+        <Association Name="fk_bestand_lager">
+          <End Role="lager" Type="Self.lager" Multiplicity="1" />
+          <End Role="bestand" Type="Self.bestand" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="lager">
+              <PropertyRef Name="LagerID" />
+            </Principal>
+            <Dependent Role="bestand">
+              <PropertyRef Name="LagerID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="LagerverwaltungEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="bestand" EntityType="Self.bestand" />
+          <EntitySet Name="lager" EntityType="Self.lager" />
+          <AssociationSet Name="fk_bestand_lager" Association="Self.fk_bestand_lager">
+            <End Role="lager" EntitySet="lager" />
+            <End Role="bestand" EntitySet="bestand" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="LagerverwaltungModelStoreContainer" CdmEntityContainer="LagerverwaltungEntities">
+          <EntitySetMapping Name="bestand">
+            <EntityTypeMapping TypeName="LagerverwaltungModel.bestand">
+              <MappingFragment StoreEntitySet="bestand">
+                <ScalarProperty Name="PaletteID" ColumnName="PaletteID" />
+                <ScalarProperty Name="LagerID" ColumnName="LagerID" />
+                <ScalarProperty Name="Bezeichnung" ColumnName="Bezeichnung" />
+                <ScalarProperty Name="Einheiten" ColumnName="Einheiten" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="lager">
+            <EntityTypeMapping TypeName="LagerverwaltungModel.lager">
+              <MappingFragment StoreEntitySet="lager">
+                <ScalarProperty Name="LagerID" ColumnName="LagerID" />
+                <ScalarProperty Name="Standort" ColumnName="Standort" />
+                <ScalarProperty Name="Kapazitaet" ColumnName="Kapazitaet" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="true" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="Kein" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
