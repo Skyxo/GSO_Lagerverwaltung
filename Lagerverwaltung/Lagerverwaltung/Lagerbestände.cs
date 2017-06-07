@@ -67,7 +67,7 @@ namespace Lagerverwaltung
             try
             {
                 // Palette dem Lager hinzufügen
-                lager.PaletteHinzufügen(anzahl);
+                //lager.PaletteHinzufügen(anzahl);
             }
             catch (OverflowException ex)
             {
@@ -86,7 +86,7 @@ namespace Lagerverwaltung
             try
             {
                 // Palette aus dem Lager verkaufen
-                lager.PaletteVerkaufen(anzahl);
+                //lager.PaletteVerkaufen(anzahl);
             }
             catch (OverflowException ex)
             {
@@ -106,7 +106,7 @@ namespace Lagerverwaltung
             try
             {
                 // Palette aus dem Lager in ein anderes Lager abziehen
-                herkunftsLager.PaletteAbziehen(anzahl, ref zielLager);
+                //herkunftsLager.PaletteAbziehen(anzahl, ref zielLager);
             }
             catch (OverflowException ex)
             {
@@ -156,7 +156,7 @@ namespace Lagerverwaltung
         {
             try
             {
-                LagerKöln.PaletteHinzufügen(TextZuInt(kölnAnzahlTextBox.Text));
+                //LagerKöln.PaletteHinzufügen(TextZuInt(kölnAnzahlTextBox.Text));
             }
             catch (OverflowException ex)
             {
@@ -175,7 +175,7 @@ namespace Lagerverwaltung
         {
             try
             {
-                LagerKöln.PaletteVerkaufen(TextZuInt(kölnAnzahlTextBox.Text));
+                //LagerKöln.PaletteVerkaufen(TextZuInt(kölnAnzahlTextBox.Text));
             }
             catch (OverflowException ex)
             {
@@ -206,7 +206,7 @@ namespace Lagerverwaltung
         {
             try
             {
-                LagerKöln.PaletteHinzufügen(TextZuInt(kölnAnzahlTextBox.Text));
+                //LagerKöln.PaletteHinzufügen(TextZuInt(kölnAnzahlTextBox.Text));
             }
             catch (OverflowException ex)
             {
@@ -225,7 +225,7 @@ namespace Lagerverwaltung
         {
             try
             {
-                LagerBonn.PaletteVerkaufen(TextZuInt(kölnAnzahlTextBox.Text));
+                //LagerBonn.PaletteVerkaufen(TextZuInt(kölnAnzahlTextBox.Text));
             }
             catch (OverflowException ex)
             {
@@ -256,7 +256,7 @@ namespace Lagerverwaltung
         {
             try
             {
-                LagerKöln.PaletteHinzufügen(TextZuInt(kölnAnzahlTextBox.Text));
+                //LagerKöln.PaletteHinzufügen(TextZuInt(kölnAnzahlTextBox.Text));
             }
             catch (OverflowException ex)
             {
@@ -275,7 +275,7 @@ namespace Lagerverwaltung
         {
             try
             {
-                LagerLeverkusen.PaletteVerkaufen(TextZuInt(kölnAnzahlTextBox.Text));
+                //LagerLeverkusen.PaletteVerkaufen(TextZuInt(kölnAnzahlTextBox.Text));
             }
             catch (OverflowException ex)
             {

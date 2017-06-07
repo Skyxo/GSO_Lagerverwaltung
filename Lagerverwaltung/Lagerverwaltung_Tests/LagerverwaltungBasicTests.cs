@@ -2,6 +2,7 @@ using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Lagerverwaltung.Model.Standort;
 using Lagerverwaltung.Model;
+using Lagerverwaltung;
 
 namespace Lagerverwaltung_UnitTest
 {
@@ -14,20 +15,27 @@ namespace Lagerverwaltung_UnitTest
         {
             Lager köln = new Köln();
 
-            köln.PaletteHinzufügen(200);
+            bestand palette = new bestand();
+            palette.Bezeichnung = "Fassbrause";
+            palette.Einheiten = 24;
 
-            Assert.AreEqual(20011, köln.Palettenbestand);
+            köln.PaletteHinzufügen(palette, 10);
+
+            Assert.AreEqual(10, köln.Palettenbestand);
         }
 
         [TestMethod]
         public void PalettenVerkaufen()
         {
             Lager leverkusen = new Leverkusen();
-            leverkusen.PaletteHinzufügen(3991);
 
-            leverkusen.PaletteVerkaufen(222);
+            bestand palette = new bestand();
+            palette.Bezeichnung = "Fassbrause";
+            palette.Einheiten = 24;
 
-            Assert.AreEqual(3991 - 222, leverkusen.Palettenbestand);
+            leverkusen.PaletteVerkaufen(palette, 10);
+
+            Assert.AreEqual(0, leverkusen.Palettenbestand);
         }
 
         [TestMethod]
@@ -36,13 +44,19 @@ namespace Lagerverwaltung_UnitTest
             Lager bonn = new Bonn();
             Lager köln = new Köln();
 
-            bonn.PaletteHinzufügen(2938);
-            köln.PaletteHinzufügen(221);
+            bestand palette = new bestand();
+            palette.Bezeichnung = "Fassbrause";
+            palette.Einheiten = 24;
 
-            bonn.PaletteAbziehen(332, ref köln);
+            bonn.PaletteHinzufügen(palette, 55);
 
-            Assert.AreEqual(2938 - 332, bonn.Palettenbestand);
-            Assert.AreEqual(221 + 332, köln.Palettenbestand);
+
+            bonn.PaletteVerkaufen(palette, 35);
+            köln.PaletteHinzufügen(palette, 35);
+
+
+            Assert.AreEqual(55 - 35, bonn.Palettenbestand);
+            Assert.AreEqual(35, köln.Palettenbestand);
         }
 
     }
