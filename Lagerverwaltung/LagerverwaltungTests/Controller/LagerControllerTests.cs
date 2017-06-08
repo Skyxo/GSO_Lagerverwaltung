@@ -21,6 +21,7 @@ namespace Lagerverwaltung.Controller.Tests
             Assert.AreEqual(1, lager.Lager.LagerID);
             Assert.AreEqual("Köln", lager.Lager.Standort);
             Assert.AreEqual(20000, lager.Lager.Kapazität);
+            Assert.AreNotEqual(0, lager.Lager.Palettenbestand.Count);
         }
 
         [TestMethod()]
@@ -63,6 +64,15 @@ namespace Lagerverwaltung.Controller.Tests
             int result = lager.EinheitenProdukt(produkt);
 
             Assert.AreNotEqual(0, result);
+        }
+
+        [TestMethod()]
+        public void ProduktVerschiebenTest()
+        {
+            LagerController lagerKöln = new LagerController("Köln");
+            LagerController lagerBonn = new LagerController("Bonn");
+
+
         }
 
     }

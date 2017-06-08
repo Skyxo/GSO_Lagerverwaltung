@@ -33,6 +33,7 @@ namespace Lagerverwaltung.Controller
             DatenLaden(standort);
         }
 
+        #region Inizialisierung
         /// <summary>
         /// Lädt alle Daten aus der Datenbank mithilfe des EntityFrameworks
         /// </summary>
@@ -62,7 +63,10 @@ namespace Lagerverwaltung.Controller
             }
         }
 
-        private void PalettenbestandLaden()
+        /// <summary>
+        /// Palettenbestand aus der Datenbank laden
+        /// </summary>
+        public void PalettenbestandLaden()
         {
             string query =
                 "SELECT palette.PaletteID AS PaletteID, ProduktID, produkt.MaxEinheiten AS MaxEinheiten, produkt.Bezeichnung AS Bezeichnung, palette.Einheiten AS Einheiten " +
@@ -94,7 +98,9 @@ namespace Lagerverwaltung.Controller
                 }
             }
         }
-        
+        #endregion
+
+        #region Akteure
         /// <summary>
         /// Eine Palette dem Palettenbestand des Lagers hinzufügen
         /// </summary>
@@ -137,6 +143,8 @@ namespace Lagerverwaltung.Controller
                 parameters.Add("Einheiten", palette.Produkt.MaxEinheiten);
 
                 DatenUtils.DatenHolen(query, parameters);
+
+                Lager.Palettenbestand.Add(palette);
             }
         }
 
@@ -159,7 +167,7 @@ namespace Lagerverwaltung.Controller
             int anzahlPaletten = PalettenzahlBerechnen(einheiten, produkt.MaxEinheiten);
             int restPalette = RestEinheitenBerechnen(einheiten, produkt.MaxEinheiten);
 
-            // Einheiten des Produkts prüfen
+            // Existenz des Produkts prüfen
             if (einheitenProdukt == 0)
             {
                 throw new ArgumentOutOfRangeException("Produkt enthält in dem Lager keine Einheiten");
@@ -177,13 +185,14 @@ namespace Lagerverwaltung.Controller
 
 
             // Liste aller Paletten welche abgezogen werden sollen
-            string query = "SELECT palette.PaletteID " +
-                    "FROM paletten palette " +
-                    "JOIN produkte produkt USING (ProduktID) " +
-                    "WHERE produkt.Bezeichnung = @ProduktBezeichnung " +
-                    "AND palette.LagerID = @LagerID " +
-                    "AND palette.Einheiten = @PaletteEinheiten " +
-                    "LIMIT @Limit ";
+            string query =
+                "SELECT palette.PaletteID " +
+                "FROM paletten palette " +
+                "JOIN produkte produkt USING (ProduktID) " +
+                "WHERE produkt.Bezeichnung = @ProduktBezeichnung " +
+                "AND palette.LagerID = @LagerID " +
+                "AND palette.Einheiten = @PaletteEinheiten " +
+                "LIMIT @Limit ";
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("ProduktBezeichnung", produkt.Bezeichnung);
@@ -215,13 +224,14 @@ namespace Lagerverwaltung.Controller
 
 
             // ID der ersten Palette finden
-            query = "SELECT palette.PaletteID " +
-                    "FROM paletten palette " +
-                    "JOIN produkte produkt USING (ProduktID) " +
-                    "WHERE produkt.Bezeichnung = @ProduktBezeichnung " +
-                    "AND palette.LagerID = @LagerID " +
-                    "AND palette.Einheiten >= @PaletteEinheiten " +
-                    "LIMIT 1 ";
+            query =
+                "SELECT palette.PaletteID " +
+                "FROM paletten palette " +
+                "JOIN produkte produkt USING (ProduktID) " +
+                "WHERE produkt.Bezeichnung = @ProduktBezeichnung " +
+                "AND palette.LagerID = @LagerID " +
+                "AND palette.Einheiten >= @PaletteEinheiten " +
+                "LIMIT 1 ";
 
             parameters = new Dictionary<string, object>();
             parameters.Add("ProduktBezeichnung", produkt.Bezeichnung);
@@ -234,23 +244,125 @@ namespace Lagerverwaltung.Controller
             if (data.Rows.Count > 0)
             {
                 paletteID = Int32.Parse(data.Rows[0]["PaletteID"].ToString());
+
+            }
+
+            // Einheiten der letzten Palette bearbeiten
+            if (paletteID >= 0)
+            {
+                query =
+                    "UPDATE paletten " +
+                    "SET Einheiten = Einheiten - @EinheitenAbzug " +
+                    "WHERE PaletteID = @PaletteID";
+
+                parameters = new Dictionary<string, object>();
+                parameters.Add("EinheitenAbzug", restPalette);
+                parameters.Add("PaletteID", paletteID);
+
+                DatenUtils.DatenBearbeiten(query, parameters);
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException("Es konnte keine Palette zum Bearbeiten gefunden werden");
+            }
+
+        }
+
+        /// <summary>
+        /// Produkt in ein anderes Lager verschieben
+        /// </summary>
+        /// <param name="produkt"></param>
+        /// <param name="einheiten"></param>
+        /// <param name="lager"></param>
+        public void ProduktVerschieben(Produkt produkt, int einheiten, ref LagerController lager)
+        {
+            // Negative Einheiten prüfen
+            if (einheiten < 0)
+            {
+                throw new ArgumentOutOfRangeException("Es können keine negativen Bestände verkauft werden!");
+            }
+
+            // Existiert die Einheiten in dem Lager?
+            int einheitenProdukt = EinheitenProdukt(produkt);
+
+            // Wie viele Paletten macht das?
+            int anzahlPaletten = PalettenzahlBerechnen(einheiten, produkt.MaxEinheiten);
+            int restPalette = RestEinheitenBerechnen(einheiten, produkt.MaxEinheiten);
+
+            // Existenz des Produkts prüfen
+            if (einheitenProdukt == 0)
+            {
+                throw new ArgumentOutOfRangeException("Produkt enthält in dem Lager keine Einheiten");
+            }
+
+            // Prüfen ob genügend Einheiten des Produktes verfügbar sind
+            else if (einheitenProdukt < einheiten)
+            {
+                throw new ArgumentOutOfRangeException("Nicht ausreichend Kapazität an Produkte vorhanden");
+            }
+
+            // Bestand des Lagers prüfen
+            else if (LagerLeer(anzahlPaletten))
+            {
+                throw new ArgumentOutOfRangeException("Lager hat zu wenig Paletten zum Verkauf");
+            }
+
+            // Bestand des Ziellagers prüfen
+            if (lager.LagerVoll(anzahlPaletten))
+            {
+                throw new ArgumentOutOfRangeException("Das angegebene Lager hat nicht genügend Kapazitäten vorhanden");
             }
 
 
-            // Einheiten der letzten Palette bearbeiten
-            query =
-                "UPDATE paletten " +
-                "SET Einheiten = Einheiten - @EinheitenAbzug " +
-                "WHERE PaletteID = @PaletteID";
+            // Gibt es noch nicht-volle Paletten im anderen Lager? Wenn ja, dann auffüllen! Wenn nicht, neue Palette!
+            string query =
+                "SELECT PaletteID, Einheiten " +
+                "FROM paletten " +
+                "WHERE LagerID = @LagerID " +
+                "AND Einheiten < @ProduktMaxEinheiten";
 
-            parameters = new Dictionary<string, object>();
-            parameters.Add("EinheitenAbzug", restPalette);
-            parameters.Add("PaletteID", paletteID);
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("LagerID", Lager.LagerID);
+            parameters.Add("ProduktMaxEinheiten", produkt.MaxEinheiten);
+
+            DataTable data = DatenUtils.DatenHolen(query, parameters);
+
+            // Freie Palette verfügbar
+            if (data.Rows.Count > 0)
+            {
+                int übrigeEinheiten = einheiten;
+
+                foreach (DataRow row in data.Rows)
+                {
+                    int einheitenPalette = Int32.Parse(row["Einheiten"].ToString());
+                    int paletteID = Int32.Parse(row["PaletteID"].ToString());
+
+                    // Aktuelle Differenz ermitteln
+                    int freieEinheitenAufPalette = produkt.MaxEinheiten - einheitenPalette;
+
+                    // Produkteinheiten der Palette hinzufügen
+                    query =
+                        "UPDATE paletten " +
+                        "SET Einheiten = @Einheiten " +
+                        "WHERE PaletteID = @PaletteID";
+
+                    parameters = new Dictionary<string, object>();
+                    parameters.Add("PaletteID", paletteID);
+                    parameters.Add("Einheiten", freieEinheitenAufPalette);
+
+                    // Versetzte Produkteinheiten der "einheiten" abziehen
+                }
+            }
+
+            // Volle Paletten aus "einheiten" ermitteln
+
+            // Ist trotzdem eine nicht-volle Palette vorhanden?
 
 
-            DatenUtils.DatenBearbeiten(query, parameters);
         }
+        #endregion
 
+        #region Produkt Utilities
         /// <summary>
         /// Summe aller Einheiten eines Produktes aller Paletten im Lager
         /// </summary>
@@ -335,7 +447,9 @@ namespace Lagerverwaltung.Controller
                 return -1;
             }
         }
+        #endregion
 
+        #region Utils (Berechnungen etc.)
         /// <summary>
         /// Kapazität wird überschritten
         /// </summary>
@@ -382,6 +496,7 @@ namespace Lagerverwaltung.Controller
 
             return Convert.ToInt32(rest * einheiten);
         }
+        #endregion
 
     }
 }
