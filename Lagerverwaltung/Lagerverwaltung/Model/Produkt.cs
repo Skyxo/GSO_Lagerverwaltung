@@ -6,40 +6,31 @@ using System.Threading.Tasks;
 
 namespace Lagerverwaltung.Model
 {
-    class Lager
+    class Produkt
     {
 
         /// <summary>
-        /// Lager ID
+        /// Produkt ID
         /// </summary>
-        public int LagerID
+        public int ProduktID
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Standort des Lagers
+        /// Bezeichnung
         /// </summary>
-        public string Standort
+        public string Bezeichnung
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Maximale Kapazität von Paletten eines Lagers
+        /// Maximale Einheiten pro Palette
         /// </summary>
-        public int Kapazität
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Aktueller Palettenbestand
-        /// </summary>
-        public List<Palette> Palettenbestand
+        public int MaxEinheiten
         {
             get;
             set;
