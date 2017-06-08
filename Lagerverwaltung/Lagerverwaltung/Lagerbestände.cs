@@ -1,13 +1,6 @@
-﻿using Lagerverwaltung.Model;
-using Lagerverwaltung.Model.Standort;
+﻿using Lagerverwaltung.Controller;
+using Lagerverwaltung.Model;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Lagerverwaltung
@@ -19,7 +12,7 @@ namespace Lagerverwaltung
         /// <summary>
         /// Kölner Lager
         /// </summary>
-        public Köln LagerKöln
+        public LagerController LagerKöln
         {
             get;
             private set;
@@ -28,7 +21,7 @@ namespace Lagerverwaltung
         /// <summary>
         /// Bonner Lager
         /// </summary>
-        public Bonn LagerBonn
+        public LagerController LagerBonn
         {
             get;
             private set;
@@ -37,7 +30,7 @@ namespace Lagerverwaltung
         /// <summary>
         /// Leverkusener Lager
         /// </summary>
-        public Leverkusen LagerLeverkusen
+        public LagerController LagerLeverkusen
         {
             get;
             private set;
@@ -51,9 +44,9 @@ namespace Lagerverwaltung
         {
             InitializeComponent();
 
-            LagerKöln = new Köln();
-            LagerBonn = new Bonn();
-            LagerLeverkusen = new Leverkusen();
+            LagerKöln = new LagerController("Köln");
+            LagerBonn = new LagerController("Bonn");
+            LagerLeverkusen = new LagerController("Leverkusen");
         }
 
         #region Prozesse

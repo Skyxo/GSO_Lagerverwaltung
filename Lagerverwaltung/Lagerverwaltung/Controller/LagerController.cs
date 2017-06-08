@@ -17,7 +17,7 @@ namespace Lagerverwaltung.Controller
         /// </summary>
         public Lager Lager
         {
-            public get;
+            get;
             private set;
         }
 
@@ -27,6 +27,9 @@ namespace Lagerverwaltung.Controller
         /// <param name="standort"></param>
         public LagerController(string standort)
         {
+            Lager = new Lager();
+            Lager.Palettenbestand = new List<Palette>();
+
             DatenLaden(standort);
         }
 
@@ -74,7 +77,6 @@ namespace Lagerverwaltung.Controller
 
             if (data.Rows.Count > 0)
             {
-                Lager.Palettenbestand = new List<Palette>();
 
                 foreach (DataRow row in data.Rows)
                 {
@@ -124,7 +126,7 @@ namespace Lagerverwaltung.Controller
                 string teilQuery = "";
                 for (int i = 0; i < anzahl; i++)
                 {
-                    teilQuery += ",(@LagerID, @ProduktID, @Einheiten)";
+                    teilQuery += ",(@LagerID, @ProduktID, @Einheiten) ";
                 }
                 teilQuery = teilQuery.Substring(1);
                 query += teilQuery;
@@ -173,18 +175,15 @@ namespace Lagerverwaltung.Controller
                 throw new ArgumentOutOfRangeException("Lager hat zu wenig Paletten zum Verkauf");
             }
 
-            // Paletten aus dem Lager abziehen
-            string query =
-                "DELETE FROM paletten " +
-                "WHERE PaletteID IN ( " +
-                    "SELECT palette.PaletteID " +
+
+            // Liste aller Paletten welche abgezogen werden sollen
+            string query = "SELECT palette.PaletteID " +
                     "FROM paletten palette " +
                     "JOIN produkte produkt USING (ProduktID) " +
                     "WHERE produkt.Bezeichnung = @ProduktBezeichnung " +
                     "AND palette.LagerID = @LagerID " +
                     "AND palette.Einheiten = @PaletteEinheiten " +
-                    "LIMIT @Limit " +
-                ")";
+                    "LIMIT @Limit ";
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("ProduktBezeichnung", produkt.Bezeichnung);
@@ -192,28 +191,62 @@ namespace Lagerverwaltung.Controller
             parameters.Add("PaletteEinheiten", produkt.MaxEinheiten);
             parameters.Add("Limit", anzahlPaletten - 1);
 
+            DataTable data = DatenUtils.DatenHolen(query, parameters);
+            List<int> palettenIDs = new List<int>();
+
+            if (data.Rows.Count > 0)
+            {
+                foreach (DataRow row in data.Rows)
+                {
+                    palettenIDs.Add(Int32.Parse(row["PaletteID"].ToString()));
+                }
+            }
+
+
+            // Paletten aus dem Lager abziehen
+            query =
+                "DELETE FROM paletten " +
+                "WHERE PaletteID IN (@PalettenIDs)";
+
+            parameters = new Dictionary<string, object>();
+            parameters.Add("PalettenIDs", string.Join(", ", palettenIDs));
+
             DatenUtils.DatenBearbeiten(query, parameters);
 
-            // Einheiten der letzten Palette bearbeiten
-            query =
-                "UPDATE paletten " +
-                "SET Einheiten = @Einheiten " +
-                "WHERE PaletteID = (" +
-                    "SELECT palette.PaletteID " +
+
+            // ID der ersten Palette finden
+            query = "SELECT palette.PaletteID " +
                     "FROM paletten palette " +
                     "JOIN produkte produkt USING (ProduktID) " +
                     "WHERE produkt.Bezeichnung = @ProduktBezeichnung " +
                     "AND palette.LagerID = @LagerID " +
-                    "AND palette.Einheiten = @PaletteEinheiten " +
-                    "LIMIT 1 " +
-                ")";
+                    "AND palette.Einheiten >= @PaletteEinheiten " +
+                    "LIMIT 1 ";
 
             parameters = new Dictionary<string, object>();
-            parameters.Add("Einheiten", restPalette);
             parameters.Add("ProduktBezeichnung", produkt.Bezeichnung);
             parameters.Add("LagerID", Lager.LagerID);
-            parameters.Add("PaletteEinheiten", produkt.MaxEinheiten);
-            parameters.Add("Limit", anzahlPaletten - 1);
+            parameters.Add("PaletteEinheiten", restPalette);
+
+            data = DatenUtils.DatenHolen(query, parameters);
+            int paletteID = -1;
+            
+            if (data.Rows.Count > 0)
+            {
+                paletteID = Int32.Parse(data.Rows[0]["PaletteID"].ToString());
+            }
+
+
+            // Einheiten der letzten Palette bearbeiten
+            query =
+                "UPDATE paletten " +
+                "SET Einheiten = Einheiten - @EinheitenAbzug " +
+                "WHERE PaletteID = @PaletteID";
+
+            parameters = new Dictionary<string, object>();
+            parameters.Add("EinheitenAbzug", restPalette);
+            parameters.Add("PaletteID", paletteID);
+
 
             DatenUtils.DatenBearbeiten(query, parameters);
         }
@@ -223,10 +256,10 @@ namespace Lagerverwaltung.Controller
         /// </summary>
         /// <param name="produkt"></param>
         /// <returns></returns>
-        private int EinheitenProdukt(Produkt produkt)
+        public int EinheitenProdukt(Produkt produkt)
         {
             string query =
-                "SELECT SUM(palette.Einheiten) AS einheitenSum" +
+                "SELECT SUM(palette.Einheiten) AS einheitenSum " +
                 "FROM paletten palette " +
                 "JOIN produkte produkt USING (ProduktID) " +
                 "WHERE produkt.Bezeichnung = @Bezeichnung " +
@@ -237,11 +270,12 @@ namespace Lagerverwaltung.Controller
             parameters["Bezeichnung"] = produkt.Bezeichnung;
             parameters["LagerID"] = Lager.LagerID;
 
+
             DataTable data = DatenUtils.DatenHolen(query, parameters);
 
             if (data.Rows.Count > 0)
             {
-                return Int32.Parse(data.Rows[0]["einheitenSum"].ToString());
+                return Int32.Parse(data.Rows[1]["einheitenSum"].ToString());
             }
             else
             {
@@ -330,9 +364,9 @@ namespace Lagerverwaltung.Controller
         /// <returns>Anzahl der benötigten Paletten</returns>
         private int PalettenzahlBerechnen(int einheiten, int max)
         {
-            double anzahl = einheiten / max;
+            double anzahl = ((double) einheiten) / ((double) max);
 
-            return Convert.ToInt32(Math.Floor(anzahl));
+            return Convert.ToInt32(Math.Ceiling(anzahl));
         }
 
         /// <summary>
@@ -343,8 +377,8 @@ namespace Lagerverwaltung.Controller
         /// <returns>Rest</returns>
         private int RestEinheitenBerechnen(int einheiten, int max)
         {
-            double anzahl = einheiten / max;
-            double rest = anzahl - Math.Ceiling(anzahl);
+            double anzahl = ((double)einheiten) / ((double)max);
+            double rest = anzahl - Math.Floor(anzahl);
 
             return Convert.ToInt32(rest * einheiten);
         }

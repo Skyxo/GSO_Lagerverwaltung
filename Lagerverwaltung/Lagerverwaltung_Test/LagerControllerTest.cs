@@ -16,12 +16,6 @@ namespace Lagerverwaltung_Test
             Assert.AreEqual(20000, lager.Lager.Kapazität);
         }
 
-        [TestMethod]
-        public void PaletteEinkaufenTest()
-        {
-            LagerController lager = new LagerController("Köln");
-            
-
-        }
+        
     }
 }

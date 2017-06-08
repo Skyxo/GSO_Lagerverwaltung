@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Lagerverwaltung.Model
 {
-    class Produkt
+    public class Produkt
     {
 
         /// <summary>
