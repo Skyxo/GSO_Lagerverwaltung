@@ -17,7 +17,7 @@ namespace Lagerverwaltung_UnitTest
         {
             Lager köln = new Köln();
 
-            bestand palette = new bestand();
+            Palette palette = new Palette();
             palette.Bezeichnung = "Ein Moodle";
             palette.Einheiten = 24;
 
@@ -36,7 +36,7 @@ namespace Lagerverwaltung_UnitTest
             Lager köln = new Köln();
             Lager bonn = new Bonn();
 
-            bestand palette = new bestand();
+            Palette palette = new Palette();
             palette.Bezeichnung = "Ein Moodle";
             palette.Einheiten = 24;
 

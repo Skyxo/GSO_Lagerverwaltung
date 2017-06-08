@@ -8,9 +8,10 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>Lagerverwaltung</RootNamespace>
     <AssemblyName>Lagerverwaltung</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -52,13 +53,18 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
+    <Reference Include="MySql.Data">
+      <HintPath>..\..\..\..\..\Google Drive\Schule\INF\MySql.Data.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Data.Entity.Design" />
+    <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Data.Services" />
+    <Reference Include="System.Data.Services.Client" />
+    <Reference Include="System.Data.Services.Design" />
+    <Reference Include="System.Data.SqlXml" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
     <Reference Include="System.Xml.Linq" />
@@ -72,34 +78,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="bestand.cs">
-      <DependentUpon>LagerModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="lager.cs">
-      <DependentUpon>LagerModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Lagerbestände.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Lagerbestände.Designer.cs">
       <DependentUpon>Lagerbestände.cs</DependentUpon>
     </Compile>
-    <Compile Include="LagerModel.Context.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>LagerModel.Context.tt</DependentUpon>
-    </Compile>
-    <Compile Include="LagerModel.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>LagerModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="LagerModel.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>LagerModel.edmx</DependentUpon>
-    </Compile>
     <Compile Include="Model\Lager.cs" />
+    <Compile Include="Model\Palette.cs" />
     <Compile Include="Model\Standort\Bonn.cs" />
     <Compile Include="Model\Standort\Köln.cs" />
     <Compile Include="Model\Standort\Leverkusen.cs" />
@@ -116,14 +102,8 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
-    <EntityDeploy Include="LagerModel.edmx">
-      <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>LagerModel.Designer.cs</LastGenOutput>
-    </EntityDeploy>
-    <None Include="LagerModel.edmx.diagram">
-      <DependentUpon>LagerModel.edmx</DependentUpon>
-    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -137,18 +117,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="LagerModel.Context.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>LagerModel.Context.cs</LastGenOutput>
-      <DependentUpon>LagerModel.edmx</DependentUpon>
-    </Content>
-    <Content Include="LagerModel.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>LagerModel.edmx</DependentUpon>
-      <LastGenOutput>LagerModel.cs</LastGenOutput>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

@@ -9,6 +9,8 @@ namespace Lagerverwaltung.Model
     public class Lager
     {
 
+        private string connectionString = "host=localhost;user=root;database=lagerverwaltung"
+
         /// <summary>
         /// Lager ID
         /// </summary>
@@ -85,7 +87,7 @@ namespace Lagerverwaltung.Model
         /// </summary>
         /// <param name="palette">Palette</param>
         /// <param name="anzahl">Anzahl der hinzuzufügenden Paletten</param>
-        public void PaletteHinzufügen(bestand palette, int anzahl)
+        public void PaletteHinzufügen(Palette palette, int anzahl)
         {
             // Negative Anzahlen ausfiltern
             if (anzahl < 0)
@@ -125,7 +127,7 @@ namespace Lagerverwaltung.Model
         /// <summary>
         /// Verkaufen einer Palette aus dem Palettenbestand
         /// </summary>
-        public void PaletteVerkaufen(bestand palette, int anzahl)
+        public void PaletteVerkaufen(Palette palette, int anzahl)
         {
             // Negative Anzahlen ausfiltern
             if (anzahl < 0)
