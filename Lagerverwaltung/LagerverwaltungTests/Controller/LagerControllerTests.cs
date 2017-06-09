@@ -72,7 +72,11 @@ namespace Lagerverwaltung.Controller.Tests
             LagerController lagerKöln = new LagerController("Köln");
             LagerController lagerBonn = new LagerController("Bonn");
 
+            Produkt produkt = new Produkt();
+            produkt.Bezeichnung = "Gaffel Kölsch";
+            produkt.MaxEinheiten = 24;
 
+            lagerKöln.ProduktVerschieben(produkt, 10, ref lagerBonn);
         }
 
     }

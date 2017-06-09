@@ -101,12 +101,18 @@ namespace Lagerverwaltung.Controller
         #endregion
 
         #region Akteure
+        public void PaletteHinzufügen(Palette palette, int anzahl)
+        {
+            PaletteHinzufügen(palette, anzahl, true);
+        }
+
         /// <summary>
         /// Eine Palette dem Palettenbestand des Lagers hinzufügen
         /// </summary>
         /// <param name="palette">Palette</param>
         /// <param name="anzahl">Anzahl der hinzuzufügenden Paletten</param>
-        public void PaletteHinzufügen(Palette palette, int anzahl)
+        /// <param name="einheitenAusPalette">Übernimmt für die Einheiten der Palette die maximale Einheitenanzahl aus dem Produkt</param>
+        public void PaletteHinzufügen(Palette palette, int anzahl, bool einheitenAusProdukt)
         {
             // Negative Anzahlen ausfiltern
             if (anzahl < 0)
@@ -140,7 +146,7 @@ namespace Lagerverwaltung.Controller
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
                 parameters.Add("LagerID", Lager.LagerID);
                 parameters.Add("ProduktID", produktID);
-                parameters.Add("Einheiten", palette.Produkt.MaxEinheiten);
+                parameters.Add("Einheiten", (einheitenAusProdukt ? palette.Produkt.MaxEinheiten : palette.Einheiten));
 
                 DatenUtils.DatenHolen(query, parameters);
 
@@ -287,7 +293,7 @@ namespace Lagerverwaltung.Controller
 
             // Wie viele Paletten macht das?
             int anzahlPaletten = PalettenzahlBerechnen(einheiten, produkt.MaxEinheiten);
-            int restPalette = RestEinheitenBerechnen(einheiten, produkt.MaxEinheiten);
+            int restPaletteAnzahl = RestEinheitenBerechnen(einheiten, produkt.MaxEinheiten);
 
             // Existenz des Produkts prüfen
             if (einheitenProdukt == 0)
@@ -314,51 +320,33 @@ namespace Lagerverwaltung.Controller
             }
 
 
-            // Gibt es noch nicht-volle Paletten im anderen Lager? Wenn ja, dann auffüllen! Wenn nicht, neue Palette!
-            string query =
-                "SELECT PaletteID, Einheiten " +
-                "FROM paletten " +
-                "WHERE LagerID = @LagerID " +
-                "AND Einheiten < @ProduktMaxEinheiten";
-
-            Dictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("LagerID", Lager.LagerID);
-            parameters.Add("ProduktMaxEinheiten", produkt.MaxEinheiten);
-
-            DataTable data = DatenUtils.DatenHolen(query, parameters);
-
-            // Freie Palette verfügbar
-            if (data.Rows.Count > 0)
+            // Produkt verkaufen
+            ProdukteVerkaufen(produkt, einheiten);
+            
+            if (anzahlPaletten > 0 && einheiten == produkt.MaxEinheiten)
             {
-                int übrigeEinheiten = einheiten;
+                // Neue Palette mit gesuchten Produkt erstellen
+                Palette palette = new Palette();
+                palette.Einheiten = produkt.MaxEinheiten;
+                palette.Produkt = produkt;
 
-                foreach (DataRow row in data.Rows)
-                {
-                    int einheitenPalette = Int32.Parse(row["Einheiten"].ToString());
-                    int paletteID = Int32.Parse(row["PaletteID"].ToString());
-
-                    // Aktuelle Differenz ermitteln
-                    int freieEinheitenAufPalette = produkt.MaxEinheiten - einheitenPalette;
-
-                    // Produkteinheiten der Palette hinzufügen
-                    query =
-                        "UPDATE paletten " +
-                        "SET Einheiten = @Einheiten " +
-                        "WHERE PaletteID = @PaletteID";
-
-                    parameters = new Dictionary<string, object>();
-                    parameters.Add("PaletteID", paletteID);
-                    parameters.Add("Einheiten", freieEinheitenAufPalette);
-
-                    // Versetzte Produkteinheiten der "einheiten" abziehen
-                }
+                // Volle Paletten dem Ziellager hinzufügen
+                lager.PaletteHinzufügen(palette, anzahlPaletten - 1);
             }
 
-            // Volle Paletten aus "einheiten" ermitteln
 
-            // Ist trotzdem eine nicht-volle Palette vorhanden?
+            // Palette mit den restlichen Einheiten dem Ziellager hinzufügen
+            if (restPaletteAnzahl > 0)
+            {
+                Palette restPalette = new Palette();
+                restPalette.Einheiten = restPaletteAnzahl;
+                restPalette.Produkt = produkt;
 
+                lager.PaletteHinzufügen(restPalette, 1, false);
+            }
 
+            // [Ersetzt den Weg, nicht gefüllte Paletten zu finden, diese aufzufüllen und danach deren LagerID zu ändern]
+            
         }
         #endregion
 
@@ -396,15 +384,17 @@ namespace Lagerverwaltung.Controller
         }
 
         /// <summary>
-        /// 
+        /// Produkt zur Produktlisten hinzufügen falls dieses nicht existiert
         /// </summary>
-        /// <param name="produkt"></param>
-        /// <returns></returns>
+        /// <param name="produkt">Produkt welches zur Datenbank hinzugefügt werden soll</param>
+        /// <returns>ProduktID des vorhandenen oder neuen Produkts</returns>
         private int ProduktEinbinden(Produkt produkt)
         {
-            int produktID = ProduktFinden(produkt.Bezeichnung);
+            int produktID = -1;
+            Produkt produktFund = ProduktFinden(produkt.Bezeichnung);
 
-            if (produktID == -1)
+            // Produkt zur Liste hinzufügen
+            if (produktFund == null)
             {
                 string query =
                     "INSERT INTO produkte (Bezeichnung, MaxEinheiten) " +
@@ -417,18 +407,24 @@ namespace Lagerverwaltung.Controller
                 produktID = DatenUtils.DatenBearbeiten(query, parameters);
             }
 
+            // ProduktID weitergeben
+            else
+            {
+                produktID = produktFund.ProduktID;
+            }
+
             return produktID;
         }
 
         /// <summary>
         /// Prüfe ob ein Produkt mit einer Bezeichnung existiert
         /// </summary>
-        /// <param name="bezeichnung"><see cref="Produkt.Bezeichnung"/></param>
-        /// <returns>Erste ProduktID</returns>
-        private int ProduktFinden(string bezeichnung)
+        /// <param name="bezeichnung">Bezeichnung des Produkts zur Suche</param>
+        /// <returns>Gefundenes Produkt aus der Produktliste</returns>
+        public Produkt ProduktFinden(string bezeichnung)
         {
             string query =
-                "SELECT ProduktID " +
+                "SELECT ProduktID, Bezeichnung, MaxEinheiten " +
                 "FROM produkte " +
                 "WHERE Bezeichnung = @Bezeichnung " + 
                 "LIMIT 1";
@@ -438,14 +434,18 @@ namespace Lagerverwaltung.Controller
 
             DataTable data = DatenUtils.DatenHolen(query, parameters);
 
+            Produkt produkt = null;
+
             if (data.Rows.Count > 0)
             {
-                return Int32.Parse(data.Rows[0]["ProduktID"].ToString());
+                produkt = new Produkt();
+
+                produkt.ProduktID = Int32.Parse(data.Rows[0]["ProduktID"].ToString());
+                produkt.Bezeichnung = data.Rows[0]["Bezeichnung"].ToString();
+                produkt.MaxEinheiten = Int32.Parse(data.Rows[0]["MaxEinheiten"].ToString());
             }
-            else
-            {
-                return -1;
-            }
+
+            return produkt;
         }
         #endregion
 
