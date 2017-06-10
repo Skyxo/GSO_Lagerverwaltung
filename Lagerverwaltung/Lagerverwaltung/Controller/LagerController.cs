@@ -101,6 +101,30 @@ namespace Lagerverwaltung.Controller
         #endregion
 
         #region Akteure
+        /// <summary>
+        /// <see cref="PaletteHinzufügen(Palette, int, bool)"/>
+        /// </summary>
+        /// <param name="produktBezeichnung">Produktbezeichnung</param>
+        /// <param name="produktEinheiten">Einheiten des Produkts auf der Palette</param>
+        /// <param name="anzahl">Anzahl der Paletten</param>
+        public void PaletteHinzufügen(string produktBezeichnung, int produktEinheiten, int anzahl)
+        {
+            Produkt produkt = new Produkt();
+            produkt.Bezeichnung = produktBezeichnung;
+            produkt.MaxEinheiten = produktEinheiten;
+
+            Palette palette = new Palette();
+            palette.Einheiten = produktEinheiten;
+            palette.Produkt = produkt;
+
+            PaletteHinzufügen(palette, anzahl);
+        }
+
+        /// <summary>
+        /// <see cref="PaletteHinzufügen(Palette, int, bool)"/>
+        /// </summary>
+        /// <param name="palette">Palette</param>
+        /// <param name="anzahl">Anzahl der Paletten</param>
         public void PaletteHinzufügen(Palette palette, int anzahl)
         {
             PaletteHinzufügen(palette, anzahl, true);
@@ -155,10 +179,23 @@ namespace Lagerverwaltung.Controller
         }
 
         /// <summary>
+        /// <see cref="ProdukteVerkaufen(Produkt, int)"/>
+        /// </summary>
+        /// <param name="produktBezeichnung">Bezeichnung des Produkts</param>
+        /// <param name="einheiten">Einheiten des Produkts</param>
+        public void ProdukteVerkaufen(string produktBezeichnung, int einheiten)
+        {
+            Produkt produkt = new Produkt();
+            produkt.Bezeichnung = produktBezeichnung;
+
+            ProdukteVerkaufen(produkt, einheiten);
+        }
+
+        /// <summary>
         /// Verkaufen einer Palette aus dem Palettenbestand
         /// </summary>
-        /// <param name="einheiten"></param>
-        /// <param name="produkt"></param>
+        /// <param name="einheiten">Einheiten des Produkts</param>
+        /// <param name="produkt">Produkt</param>
         public void ProdukteVerkaufen(Produkt produkt, int einheiten)
         {
             // Negative Einheiten prüfen
@@ -275,11 +312,25 @@ namespace Lagerverwaltung.Controller
         }
 
         /// <summary>
+        /// <see cref="ProduktVerschieben(Produkt, int, ref LagerController)"/>
+        /// </summary>
+        /// <param name="produktBezeichnung">Bezeichnung des Produkts</param>
+        /// <param name="einheiten">Anzahl der Einheiten</param>
+        /// <param name="lager">Ziellager</param>
+        public void ProduktVerschieben(string produktBezeichnung, int einheiten, ref LagerController lager)
+        {
+            Produkt produkt = new Produkt();
+            produkt.Bezeichnung = produktBezeichnung;
+
+            ProduktVerschieben(produkt, einheiten, ref lager);
+        }
+
+        /// <summary>
         /// Produkt in ein anderes Lager verschieben
         /// </summary>
-        /// <param name="produkt"></param>
-        /// <param name="einheiten"></param>
-        /// <param name="lager"></param>
+        /// <param name="produkt">Produkt</param>
+        /// <param name="einheiten">Anzahl der Einheiten</param>
+        /// <param name="lager">Ziellager</param>
         public void ProduktVerschieben(Produkt produkt, int einheiten, ref LagerController lager)
         {
             // Negative Einheiten prüfen

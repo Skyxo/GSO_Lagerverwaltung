@@ -29,6 +29,8 @@ namespace Lagerverwaltung.Controller.Tests
         {
             LagerController lager = new LagerController("Köln");
 
+            int lagerBestand = lager.Lager.Palettenbestand.Count;
+
             Produkt produkt = new Produkt();
             produkt.Bezeichnung = "Gaffel Kölsch";
             produkt.MaxEinheiten = 24;
@@ -38,6 +40,8 @@ namespace Lagerverwaltung.Controller.Tests
             palette.Einheiten = 24;
 
             lager.PaletteHinzufügen(palette, 10);
+
+            Assert.AreEqual(lagerBestand + 10, lager.Lager.Palettenbestand.Count);
         }
 
         [TestMethod()]
@@ -77,6 +81,17 @@ namespace Lagerverwaltung.Controller.Tests
             produkt.MaxEinheiten = 24;
 
             lagerKöln.ProduktVerschieben(produkt, 10, ref lagerBonn);
+        }
+
+        [TestMethod()]
+        public void ProduktFindenTest()
+        {
+            string produktname = "Gaffel Kölsch";
+            LagerController lagerKöln = new LagerController("Köln");
+
+            Produkt produkt = lagerKöln.ProduktFinden(produktname);
+
+            Assert.AreNotEqual(null, produkt);
         }
 
     }
