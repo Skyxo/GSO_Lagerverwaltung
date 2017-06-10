@@ -16,7 +16,7 @@ namespace Lagerverwaltung
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new LagerbeständeForm());
+            Application.Run(new LagerView());
         }
     }
 }
